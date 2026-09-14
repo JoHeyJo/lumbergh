@@ -27,78 +27,10 @@ results = exa.search(
 
 for result in results.results:
     print(result.title, result.url)
-```
 
----
 
-## Pick Your Search Pattern
 
-Start with one of these two patterns:
-
-### 1. Raw retrieval for your own agent
-
-Use this when your app should inspect `results` directly, pass `highlights` into your own LLM, or expose Exa as a tool inside an existing agent loop.
-
-```json
-{
-  "query": "recent product announcements from developer tools companies",
-  "type": "auto",
-  "numResults": 10,
-  "contents": {
-    "highlights": true
-  }
-}
-```
-
-### 2. Synthesized search when you want grounded output
-
-Use this when you want Exa to synthesize a grounded answer or structured payload for you. `systemPrompt` sets behavior and source preferences; `outputSchema` sets the shape of `output.content`.
-
-```json
-{
-  "query": "recent product announcements from developer tools companies",
-  "type": "deep",
-  "systemPrompt": "Prefer official sources, collapse duplicate reporting, and keep the output grounded.",
-  "outputSchema": {
-    "type": "object",
-    "properties": {
-      "summary": {
-        "type": "string",
-        "description": "A grounded summary of the most important findings"
-      }
-    },
-    "required": [
-      "summary"
-    ]
-  },
-  "contents": {
-    "highlights": true
-  }
-}
-```
-
-### Deep search notes
-
-- Use `deep` when you need harder comparisons, structured synthesis, or multi-step reasoning across many sources.
-- Use `additionalQueries` only on `deep-lite`, `deep`, and `deep-reasoning` when you want to force a few explicit query angles instead of relying entirely on automatic query expansion.
-- If you only need raw search results and excerpts, stay on `results` + `highlights` and skip `outputSchema`.
-
----
-
-## Function Calling / Tool Use
-
-Function calling (also known as tool use) allows your AI agent to dynamically decide when to search the web based on the conversation context. Instead of searching on every request, the LLM intelligently determines when real-time information would improve its response—making your agent more efficient and accurate.
-
-**Why use function calling with Exa?**
-- Your agent can ground responses in current, factual information
-- Reduces hallucinations by fetching real sources when needed
-- Enables multi-step reasoning where the agent searches, analyzes, and responds
-
-📚 **Full documentation**: https://docs.exa.ai/reference/openai-tool-calling
-
-### OpenAI Function Calling
-
-```python
+# ```python
 import json
 from openai import OpenAI
 from exa_py import Exa
@@ -119,58 +51,6 @@ tools = [{
     }
 }]
 
-def exa_search(query: str) -> str:
-    results = exa.search(query, type="auto", num_results=10, contents={"highlights": True})
-    return "\n".join([f"{r.title}: {r.url}" for r in results.results])
-
-messages = [{"role": "user", "content": "What's the latest in AI safety?"}]
-response = openai.chat.completions.create(model="gpt-4o", messages=messages, tools=tools)
-
-if response.choices[0].message.tool_calls:
-    tool_call = response.choices[0].message.tool_calls[0]
-    search_results = exa_search(json.loads(tool_call.function.arguments)["query"])
-    messages.append(response.choices[0].message)
-    messages.append({"role": "tool", "tool_call_id": tool_call.id, "content": search_results})
-    final = openai.chat.completions.create(model="gpt-4o", messages=messages)
-    print(final.choices[0].message.content)
-```
-
-### Anthropic Tool Use
-
-```python
-import anthropic
-from exa_py import Exa
-
-client = anthropic.Anthropic()
-exa = Exa(api_key="YOUR_EXA_API_KEY")
-
-tools = [{
-    "name": "exa_search",
-    "description": "Search the web for current information.",
-    "input_schema": {
-        "type": "object",
-        "properties": {"query": {"type": "string", "description": "Search query"}},
-        "required": ["query"]
-    }
-}]
-
-def exa_search(query: str) -> str:
-    results = exa.search(query, type="auto", num_results=10, contents={"highlights": True})
-    return "\n".join([f"{r.title}: {r.url}" for r in results.results])
-
-messages = [{"role": "user", "content": "Latest quantum computing developments?"}]
-response = client.messages.create(model="claude-sonnet-4-20250514", max_tokens=4096, tools=tools, messages=messages)
-
-if response.stop_reason == "tool_use":
-    tool_use = next(b for b in response.content if b.type == "tool_use")
-    tool_result = exa_search(tool_use.input["query"])
-    messages.append({"role": "assistant", "content": response.content})
-    messages.append({"role": "user", "content": [{"type": "tool_result", "tool_use_id": tool_use.id, "content": tool_result}]})
-    final = client.messages.create(model="claude-sonnet-4-20250514", max_tokens=4096, tools=tools, messages=messages)
-    print(final.content[0].text)
-```
-
----
 
 ## Search Type Reference
 
