@@ -31,6 +31,6 @@ agent = Agent(tools=[exa_search, exa_get_contents])
 
 # Ask the agent a question that uses the available tools
 message = """
-Do you recognize the tools you've been given? Do not execute them.
+Can you find all recent software engineer roles posted on https://www.greenhouse.com/careers?
 """
 agent(message)

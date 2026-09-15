@@ -6,17 +6,44 @@ exa = Exa(api_key=os.environ.get("EXA_API_KEY"))
 
 
 
-results = exa.search(
-    "recent product announcements from developer tools companies",
-    include_domains=[
-        "https://www.financialcontent.com/article/bizwire-2026-9-14-sourcegraph-announces-general-availability-of-agentic-batch-changes-the-ai-agent-for-large-scale-code-changes-across-enterprise-codebases"
-    ],
-    type="auto",
-    num_results=10,
-    contents={"highlights": True},
+# response = exa.search(
+#     "Find software engineer roles. Open the post and return the jobs responsibilities.",
+#     include_domains=["https://www.greenhouse.com/careers"],
+#     type="auto",
+#     num_results=5,
+#     contents={
+#         "highlights": True,
+#         "subpages": 10,
+#         "subpage_target": ["job", "position", "opening"],
+#         "livecrawl": "fallback",
+#     },
+# )
+
+# response = exa.search(
+#     "Find software engineer roles.",
+#     include_domains=["https://www.greenhouse.com"],
+#     num_results=10,
+#     contents={
+#         "subpages": 10,
+#         "subpage_target": ["job", "position", "opening"],
+#         "text": True,
+#         "extras": {"links": 50},
+#     },
+# )
+
+exa.get_contents(
+    ["https://www.greenhouse.com"],
+    text=True,
+    subpages=20,
+    subpage_target=["job", "position", "opening"],
+    livecrawl="always",
 )
 
-for result in results.results:
-    print(result.title, result.url)
 
-
+for result in response.results:
+    print(f"result: {result}")
+    # print(f"Title: {result.title}")
+    # print(f"URL: {result.url}")
+    # if result.highlights:
+    #     print(f"Highlight: {result.highlights}")
+    print("-" * 40)
