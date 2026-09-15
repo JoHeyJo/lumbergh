@@ -7,6 +7,7 @@ load_dotenv()
 
 import boto3
 
+runtime_arn_path = os.environ.get("RUNTIME_ARN_PATH")
 
 # Initialize the SSM client
 ssm_client = boto3.client("ssm", region_name=os.environ.get("REGION_NAME"))
@@ -16,7 +17,7 @@ def get_agent_core_parameter(param_name):
     try:
         response = ssm_client.get_parameter(
             Name=param_name,
-            WithDecryption=True,  # Required if the parameter is a SecureString
+            WithDecryption=True,
         )
         return response["Parameter"]["Value"]
     except ssm_client.exceptions.ParameterNotFound:
@@ -24,11 +25,9 @@ def get_agent_core_parameter(param_name):
         return None
 
 
-# Example usage (Replace with your exact AgentCore SSM path)
-runtime_arn_path = "/bedrock/agentcore/runtime/arn"
-runtime_arn = get_agent_core_parameter(runtime_arn_path)
-print(f"Runtime ARN: {runtime_arn}")
 
+# Example usage (Replace with your exact AgentCore SSM path)
+runtime_arn = get_agent_core_parameter(runtime_arn_path)
 
 # Define a custom tool as a Python function using the @tool decorator
 @tool
