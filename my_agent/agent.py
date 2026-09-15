@@ -1,6 +1,33 @@
+import os
 from strands import Agent, tool
 from strands_tools import file_read
 from strands_tools.exa import exa_search, exa_get_contents
+from dotenv import load_dotenv
+load_dotenv()
+
+import boto3
+
+
+# Initialize the SSM client
+ssm_client = boto3.client("ssm", region_name=os.environ.get("REGION_NAME"))
+
+
+def get_agent_core_parameter(param_name):
+    try:
+        response = ssm_client.get_parameter(
+            Name=param_name,
+            WithDecryption=True,  # Required if the parameter is a SecureString
+        )
+        return response["Parameter"]["Value"]
+    except ssm_client.exceptions.ParameterNotFound:
+        print(f"Error: Parameter '{param_name}' not found.")
+        return None
+
+
+# Example usage (Replace with your exact AgentCore SSM path)
+runtime_arn_path = "/bedrock/agentcore/runtime/arn"
+runtime_arn = get_agent_core_parameter(runtime_arn_path)
+print(f"Runtime ARN: {runtime_arn}")
 
 
 # Define a custom tool as a Python function using the @tool decorator
