@@ -9,8 +9,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+if not os.getenv("TAVILY_API_KEY"):
+    raise ValueError("TAVILY_API_KEY environment variable is required")
+
+
 prompt = """
-Extract and summarize the top 10 software engineer job listings on Indeed using the tavily tool.
+Extract the top 5 software engineer job listings on Indeed. Return an object with:
+job title, company, role, summarize blurb of company info/purpose,
+role requirements, qualifications, preferred qualification(nice to have),
+link to the job listing.
 """
 
 print(prompt)
