@@ -39,8 +39,5 @@ Rules:
 - Leave a list empty rather than guess.
 - Report tool failures rather than answering from memory."""
 
-agent = Agent(
-    system_prompt=SYSTEM_PROMPT,
-)
+agent = Agent(system_prompt=SYSTEM_PROMPT, callback_handler=None)
 
-agent()
