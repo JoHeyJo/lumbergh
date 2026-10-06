@@ -1,28 +1,13 @@
-import os, requests
-import logging
 from strands import Agent, tool
 from strands_tools import file_read
 from strands_tools.exa import exa_search, exa_get_contents
 from dotenv import load_dotenv
 from tavily import TavilyClient
 
-# indeed = works
-# greenhouse = in progress
+# load_dotenv()
 
-# fetch at ATS APIs
-# Prompt Notes:
-# Allow agent to express "I couldn't get this"
-# Company blurbs deserve their own cache keyed on company name. A company's purpose doesn't change between runs, and that alone eliminates most of your repeat searches.
-# Make every extracted field Optional[str] = None, add a source: Literal["full_posting", "search_snippet"] per listing
-# create fetch_ats_jobs(company_slug) tool to return clean JSON deterministically - LLM never has to decide how to get data — only how to normalize it.
-# Add call budget. Make exceeding the cap return partial results with an explicit incomplete: true rather than letting the agent improvise.
-# No deduplication
-
-
-load_dotenv()
-
-if not os.getenv("TAVILY_API_KEY"):
-    raise ValueError("TAVILY_API_KEY environment variable is required")
+# if not os.getenv("TAVILY_API_KEY"):
+#     raise ValueError("TAVILY_API_KEY environment variable is required")
 
 
 # prompt = """
@@ -34,21 +19,28 @@ if not os.getenv("TAVILY_API_KEY"):
 # never infer requirements or qualifications from a search snippet; if the posting body wasn't retrieved, leave the field null..
 # """
 
-query = "Senior Backend Engineer Rust remote"
-domains = ["job-boards.greenhouse.io", "boards.greenhouse.io"]
+# resp = TavilyClient(api_key=os.getenv("TAVILY_API_KEY")).search(
+#     query=query,
+#     include_domains=domains,
+#     max_results=20,
+#     search_depth="basic",
+#     include_raw_content=False,
+# )
+SYSTEM_PROMPT = """You convert a résumé into a compact, factual profile.
 
-resp = TavilyClient(api_key=os.getenv("TAVILY_API_KEY")).search(
-    query=query,
-    include_domains=domains,
-    max_results=20,
-    search_depth="basic",
-    include_raw_content=False,
-)
+Rules:
+- Only record what the résumé states. Do not infer skills, seniority, or years not written there.
+- Every list entry is one short, self-contained line that could be quoted as evidence on its own.
+- experience: one line per role, formatted "Title, Company, start–end: 2–4 concrete things done."
+  Keep the dates exactly as written.
+- skills: concrete technologies, languages, tools. No soft skills.
+- education: degree, school, year if given.
+- other: certifications, work authorization, languages, publications — only if explicitly stated.
+- Leave a list empty rather than guess.
+- Report tool failures rather than answering from memory."""
 
-print(prompt)
 agent = Agent(
-    system_prompt="Report tool failures rather than answering from memory.",
-    tools=[tavily],
+    system_prompt=SYSTEM_PROMPT,
 )
 
-agent(prompt)
+agent()
