@@ -42,6 +42,17 @@ GATE_PATTERNS = [
 ]
 _GATE_RE = re.compile("|".join(GATE_PATTERNS), re.IGNORECASE)
 
+_TYPO = str.maketrans(
+    {
+        "\u2018": "'",
+        "\u2019": "'",  # curly single quotes
+        "\u201c": '"',
+        "\u201d": '"',  # curly double quotes
+        "\u2013": "-",
+        "\u2014": "-",  # en and em dashes
+        "\u00a0": " ",  # non-breaking space
+    }
+)
 
 class _Extraction(BaseModel):
     requirements: list[Requirement]
@@ -52,7 +63,7 @@ def _agent() -> Agent:
 
 
 def _norm(s: str) -> str:
-    return re.sub(r"\s+", " ", s).strip()
+    return re.sub(r"\s+", " ", s.translate(_TYPO)).strip()
 
 
 def span_in_text(span: str, text: str) -> bool:
