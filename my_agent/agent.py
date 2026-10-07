@@ -2,7 +2,6 @@ from strands import Agent, tool
 from strands_tools import file_read
 from strands_tools.exa import exa_search, exa_get_contents
 from dotenv import load_dotenv
-from tavily import TavilyClient
 
 # load_dotenv()
 
