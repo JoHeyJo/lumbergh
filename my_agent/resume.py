@@ -17,8 +17,10 @@ from models import ResumeProfile
 from agent import agent
 
 
-
 def load_profile(pdf_path: Path) -> ResumeProfile:
+    """
+    Converts pdf to class instance of ResumeProfile. Returns JSONified version of resume tailed for agent consumption.
+    """
     pdf_bytes = pdf_path.read_bytes()
     digest = hashlib.sha256(pdf_bytes).hexdigest()[:16]
 
@@ -28,8 +30,7 @@ def load_profile(pdf_path: Path) -> ResumeProfile:
     if cache_path.exists():
         return ResumeProfile.model_validate_json(cache_path.read_text())
 
-    profile = agent().structured_output(
-        ResumeProfile,
+    profile = agent(
         [
             {
                 "document": {
@@ -39,7 +40,7 @@ def load_profile(pdf_path: Path) -> ResumeProfile:
                 }
             },
             {"text": "Convert this résumé into a ResumeProfile."},
-        ],
+        ]
     )
     cache_path.write_text(profile.model_dump_json(indent=2))
     return profile
