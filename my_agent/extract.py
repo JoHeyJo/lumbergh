@@ -112,7 +112,7 @@ def extract_requirements(
 if __name__ == "__main__":
     from greenhouse import fetch_board
 
-    SENIOR = ("senior", "staff", "principal", "lead", "manager", "director")
+    SENIOR = ("entry", "mid", "junior")
     listings = [
         l
         for l in fetch_board("cloudflare")
