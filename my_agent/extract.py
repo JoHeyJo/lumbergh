@@ -23,7 +23,7 @@ Rules:
   character. Never paraphrase, trim words from the middle, or fix typos. The span is how your work
   gets verified; a span that is not in the posting will be discarded.
 - text: the requirement in plain words. May shorten the span; may not add to it.
-- preferred: true only if the item sits under a heading like "Preferred", "Nice to have", "Bonus".
+- preferred: true only if the item sits under a heading like "Preferred", "Nice to have","Nice-to-Have Skills","Good-to-Haves", "Bonus", "Strongly Preferred Qualifications".
 - gate: true only for hard eligibility: security clearance, work authorization or sponsorship,
   a required degree, a required location, or a stated minimum years of experience.
 - Only extract from requirement/qualification sections. Skip responsibilities, company blurbs,
@@ -53,6 +53,7 @@ _TYPO = str.maketrans(
         "\u00a0": " ",  # non-breaking space
     }
 )
+
 
 class _Extraction(BaseModel):
     requirements: list[Requirement]
@@ -111,8 +112,10 @@ def extract_requirements(
 
 if __name__ == "__main__":
     from greenhouse import fetch_board
+    import re
+    from extract import extract_requirements
 
-    SENIOR = ("entry", "mid", "junior")
+    SENIOR = ("senior", "staff", "principal", "lead", "manager", "director")
     listings = [
         l
         for l in fetch_board("cloudflare")
@@ -121,10 +124,17 @@ if __name__ == "__main__":
     ][:10]
 
     total_kept = total_dropped = 0
+    years = re.compile(r"\b\d+\+?\s*(years|yrs)\b", re.I)
     for l in listings:
         kept, dropped = extract_requirements(l)
         total_kept += len(kept)
         total_dropped += len(dropped)
+
+        in_posting = bool(years.search(l.description))
+        in_gates = any(r.gate and years.search(r.source_span) for r in kept)
+        if in_posting != in_gates:
+            print(f"MISMATCH  posting={in_posting} gate={in_gates}  {l.title}")
+        
         print(
             f"\n=== {l.title}  ({len(kept)} kept, {len(dropped)} dropped)\n    {l.url}"
         )
